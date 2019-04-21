@@ -1,16 +1,27 @@
 <template>
   <v-container>
     <v-layout
-      text-xs-center
-      wrap
+      align-center
+      justify-center
+      column
     >
       <v-flex mb-4>
         <h1 class="display-2 font-weight-bold mb-3">
           Splitting a Delaunay Triangulation
         </h1>
-        <p class="subheading font-weight-regular">
-          Authored by Dan and Sam
-        </p>
+      </v-flex>
+      <v-flex>
+        <v-card width="90vw" height="80vh">
+          <v-layout align-center justify-center>
+          <v-card width="85vw" height="70vh" dark> 
+          </v-card>
+          </v-layout>
+          
+            <v-card-actions>
+              <v-btn color="blue">Play</v-btn>
+              <v-btn color="blue">Undo</v-btn>
+            </v-card-actions>
+        </v-card>
       </v-flex>
     </v-layout>
   </v-container>
