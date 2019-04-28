@@ -5,26 +5,27 @@
 </head>
 
 <body>
-	<div class="border">
-		<div style="text-align: center">
-			<h1 class="title">Splitting Delaunay Triangulations</h1>
-		</div>
-		<div class="flex-container">
-			<div class="interface">
-				<button type=button class="button1">Run</button>
-				<button type=button class="button2">Reset</button>
-				<div class="slidecontainer">
-				  <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
-				</div>
-			</div>
-			<div class="image">
-				<svg width="960" height="500" class="boxed"></svg>
-			</div>
-		</div>
-	</div>
+  <div class="border">
+    <div style="text-align: center">
+      <h1 class="title">Splitting Delaunay Triangulations</h1>
+    </div>
+    <div class="flex-container">
+      <div class="interface">
+        <button type=button class="button1">Run</button>
+        <button type=button class="button2">Reset</button>
+        <div class="slidecontainer">
+          <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+        </div>
+      </div>
+      <div class="image">
+        <svg width="960" height="500" class="boxed"></svg>
+      </div>
+    </div>
+  </div>
 
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://unpkg.com/delaunator@3.0.2/delaunator.js"></script>
 <script>
 
 var svg = d3.select("svg").on("touchmove mousemove", moved),
@@ -125,58 +126,58 @@ function redrawSite(site) {
 }
 
 .title {
-	font-family: Arial;
+  font-family: Arial;
 }
 
 .boxed {
-	text-align: right;
-	padding: 20px;
-	border: 2px solid lightgrey;
-	border-left: 0px;
-	border-right: 0px;
-	border-bottom: 0px;
-	float: right;
-	height: 500px;
-	position: relative;
+  text-align: right;
+  padding: 20px;
+  border: 2px solid lightgrey;
+  border-left: 0px;
+  border-right: 0px;
+  border-bottom: 0px;
+  float: right;
+  height: 500px;
+  position: relative;
 }
 
 
 .image {
-	background-color: white;
+  background-color: white;
 }
 
 .interface {
-	width: 100%;
+  width: 100%;
     border: 2px solid lightgrey;
     padding: 30px;
     margin: 0px;
     text-align: center;
     border-left: 0px;
     border-bottom: 0px;
-	position: relative;
+  position: relative;
 }
 
 .interface:after {
-	content: '';
-	display: block;
-	position: absolute;
-	height: 15px;
-	width: 30px;
-	top: 0px;
-	right: -5px;
-	border: 5px solid white;
+  content: '';
+  display: block;
+  position: absolute;
+  height: 15px;
+  width: 30px;
+  top: 0px;
+  right: -5px;
+  border: 5px solid white;
 }
 
 
 .flex-container {
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 
 .button1 {
-  background-color: #f44336; /* Green */
+  background-color: #f44336; 
   border: none;
   color: white;
   padding: 15px 32px;
@@ -187,7 +188,7 @@ function redrawSite(site) {
 }
 
 .button2 {
-  background-color: #008CBA; /* Green */
+  background-color: #008CBA;
   border: none;
   color: white;
   padding: 15px 32px;
@@ -198,29 +199,29 @@ function redrawSite(site) {
 }
 
 .slidecontainer {
-  width: 100%; /* Width of the outside container */
+  width: 100vh; 
   position: relative;
-  top: 200px;
+  top: 50%;
 }
 
 .slider {
-  -webkit-appearance: none;  /* Override default CSS styles */
+  -webkit-appearance: none;  
   appearance: none;
-  width: 100%; /* Full-width */
-  height: 15px; /* Specified height */
-  background: #d3d3d3; /* Grey background */
-  outline: none; /* Remove outline */
-  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
-  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  width: 100%; 
+  height: 15px; 
+  background: #d3d3d3; 
+  outline: none;
+  opacity: 0.7; 
+  -webkit-transition: .2s; 
   transition: opacity .2s;
   
   top: 40%;
   transform: rotate(270deg);
 }
 
-/* Mouse-over effects */
+
 .slider:hover {
-  opacity: 1; /* Fully shown on mouse-over */
+  opacity: 1; 
 }
 
 
@@ -243,4 +244,3 @@ function redrawSite(site) {
 </style>
 
 </body>
-
