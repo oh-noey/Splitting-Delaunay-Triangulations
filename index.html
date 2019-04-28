@@ -26,19 +26,20 @@
 
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="https://unpkg.com/delaunator@3.0.2/delaunator.js"></script>
+<script src="https://unpkg.com/tinyqueue@2.0.0/tinyqueue.min.js"></script>
 <script>
 
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height");
 // const points = [[0, 0], [0, 100], [100, 0], [100, 100], [200, 200], [20, 20]]
-const points = Array.from({length: 10}, ()=> [Math.floor(Math.random()*width), Math.floor(Math.random()*height)])
+const points = Array.from({length: 80}, ()=> [Math.floor(Math.random()*width), Math.floor(Math.random()*height)])
 const delaunay = Delaunator.from(points);
 const triangles = delaunay.hull
 const blue = '#6F97A8'
 const purple = '#BC95E1'
 const red = '#82204A'
-console.log(triangles);
+// console.log(triangles);
 // for (let i = 1; i < triangles.length; i ++) {
 //   svg.append("line")
 //   .attr("x1", points[triangles[i]][0])
@@ -69,8 +70,8 @@ forEachTriangleEdge(points, delaunay, (_,b,c) => {
     graph2[b].push(c)
   }
 })
-console.info(graph1)
-console.info(graph2)
+// console.info(graph1)
+// console.info(graph2)
 // console.info(graph)
 for(let i = 0; i < points.length; i++){
   let circ = svg.append("circle")
@@ -113,24 +114,26 @@ function doAlgo(){
           currentGraph = graph2
           currentPosset = S2
         }
-        var nearest = currentGraph[point][0]
-        var nearestDistance = magnitudeSquared(point, currentGraph[point][0])
-        console.info(currentGraph[point].length)
-        for(let i = 1; i<currentGraph[point].length; i++){
-          svg.select(getLineAttributeString(point,currentGraph[point][i]))
-          .attr('stroke', red)
-          console.info('stroke')
-          await sleep(1000)
-          const currentDistance = magnitudeSquared(point, currentGraph[point][i])
-          if(nearestDistance > currentDistance){
-            nearestDistance = currentDistance
-            nearest = currentGraph[point][i]
-          }
+        var queue = new TinyQueue(data = [], compare=(x,y) => magnitudeSquared(point,x) - magnitudeSquared(point,y))
+        graph[point].forEach((el) => queue.push(el))
+        let nearest = queue.pop()
+        let last = point
+        svg.select(getLineAttributeString(point,nearest)).attr('stroke', red)
+        let visited = [point,nearest]
+        console.info(queue)
+        while(!currentPosset.includes(nearest)){
+          console.info(`${nearest}`)
+          graph[nearest].forEach((el) => queue.push(el))
+          console.info(queue)
+          last = nearest
+          nearest = queue.pop()
+          svg.select(getLineAttributeString(last,nearest)).attr('stroke', red)
         }
+        
         return nearest
       } 
-      console.log(await Promise.all([findNeigbor(p1), findNeigbor(p2)]))
-      
+      // console.log(await Promise.all([findNeigbor(p1), findNeigbor(p2)]))
+      await findNeigbor(p1)
       // await sleep(2000)
       // svg.select(getCircleAttributeString(p1))
       // .attr('r', 3)
