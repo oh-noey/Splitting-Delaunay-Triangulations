@@ -5,16 +5,19 @@
 </head>
 
 <body>
-  <div class="border">
-    <div style="text-align: center">
+  <div style="text-align: center">
       <h1 class="title">Splitting Delaunay Triangulations</h1>
-    </div>
+  </div>
+  <div class="border">
     <div class="flex-container">
       <div class="interface">
-        <button type=button class="button1">Run</button>
-        <button type=button class="button2">Reset</button>
+        <button class="button1" id="run">Run</button>
+        <button class="button2" value="Reload Page" onClick="document.location.reload(true)">Reset</button>
         <div class="slidecontainer">
           <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+        </div>
+        <div class="consolebox">
+          <p id="insert"></p>
         </div>
       </div>
       <div class="image">
@@ -39,6 +42,10 @@ const triangles = delaunay.hull
 const blue = '#6F97A8'
 const purple = '#BC95E1'
 const red = '#82204A'
+var log = "> Initialize Delaunay Triangulation (DT)";
+document.getElementById("insert").innerHTML = log;
+
+
 // console.log(triangles);
 // for (let i = 1; i < triangles.length; i ++) {
 //   svg.append("line")
@@ -91,10 +98,19 @@ for(let i = 0; i < points.length; i++){
 const sleep = (milliseconds) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
-doAlgo()
+
+document.getElementById("run").onclick = function() {doAlgo()};
+
+
+
 function doAlgo(){
+  var btn = document.getElementById('run');
+  btn.disabled = true;
   const doSomething = async () =>{
+    await sleep(1000)
     const recurrantStep = async () => {
+      log = "> Pick 2 random points"
+      document.getElementById("insert").innerHTML = log
       let p1 = points[Math.floor(Math.random() * points.length)]
       let p2 = points[Math.floor(Math.random() * points.length)]
       svg.select(getCircleAttributeString(p1))
@@ -122,7 +138,9 @@ function doAlgo(){
         let nearest = queue.pop()
         let last = point
         console.info("Drawing edge")
-        
+        await sleep(2000);
+        log = "> Find Nearest Neighbors"
+        document.getElementById("insert").innerHTML = log
         // console.info(svg.select(getLineAttributeString(point,nearest)).attr('stroke', red))
         let edges = [drawEdge(point,nearest).attr('stroke', red)]
         let visited = [point,nearest]
@@ -224,6 +242,7 @@ function forEachTriangleEdge(points, delaunay, callback) {
             const p = points[delaunay.triangles[e]];
             const q = points[delaunay.triangles[nextHalfedge(e)]];
             callback(e, p, q);
+
         }
     }
 }
@@ -294,14 +313,16 @@ function forEachTriangle(points, delaunay, callback) {
 }
 
 .interface {
-  width: 100%;
+    width: 200%;
     border: 2px solid lightgrey;
     padding: 30px;
     margin: 0px;
     text-align: center;
     border-left: 0px;
     border-bottom: 0px;
-  position: relative;
+    float: left;
+
+
 }
 
 .interface:after {
@@ -320,6 +341,7 @@ function forEachTriangle(points, delaunay, callback) {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  
 }
 
 
@@ -348,7 +370,7 @@ function forEachTriangle(points, delaunay, callback) {
 .slidecontainer {
   width: 100%; 
   position: relative;
-  top: 50%;
+  top: 30%;
 }
 
 .slider {
@@ -387,6 +409,23 @@ function forEachTriangle(points, delaunay, callback) {
   background: black;
   cursor: pointer;
 }
+
+.border {
+  display: flex;
+}
+
+.consolebox {
+  width: 85%;
+  height: 15%;
+  padding: 10px;
+  border: 2px solid grey;
+  margin: 0;
+  position: relative;
+  top: 55%;
+  text-align: left;
+
+}
+
 
 </style>
 
