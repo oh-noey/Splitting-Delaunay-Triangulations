@@ -36,13 +36,14 @@ var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height");
 // const points = [[0, 0], [0, 100], [100, 0], [100, 100], [200, 200], [20, 20]]
-const points = Array.from({length: 80}, ()=> [Math.floor(Math.random()*width), Math.floor(Math.random()*height)])
+const points = Array.from({length: 60}, ()=> [Math.floor(Math.random()*width), Math.floor(Math.random()*height)])
 var delaunay = Delaunator.from(points);
 var delaunayLines = []
 const triangles = delaunay.hull
 const blue = '#6F97A8'
 const purple = '#BC95E1'
 const red = '#82204A'
+const orange = '#DDA448'
 
 
 function setProgress(progress){
@@ -67,11 +68,7 @@ const S2 = points.slice(splitPos)
 var graph = new Object();
 // var graph1 = new Object();
 // var graph2 = new Object();
-for(let i = 0; i < points.length; i++){
-  graph[points[i]] = []
-  // graph1[points[i]] = []
-  // graph2[points[i]] = []
-}
+
 
 function drawDelaunay(){
   delaunayLines.forEach((line) => line.remove())
@@ -84,17 +81,26 @@ function drawDelaunay(){
   })
 }
 
-forEachTriangleEdge(points, delaunay, (_,b,c) => {
-  if(b==c)
-    return
-  graph[b].push(c)
-  graph[c].push(b)
-  // if(S1.includes(b) && S1.includes(c)){
-  //   graph1[b].push(c)
-  // } else if (S2.includes(b) && S2.includes(c)){
-  //   graph2[b].push(c)
-  // }
-})
+function buildDelaunayGraph(){
+  for(let i = 0; i < points.length; i++){
+    graph[points[i]] = []
+    // graph1[points[i]] = []
+    // graph2[points[i]] = []
+  }
+  forEachTriangleEdge(points, delaunay, (_,b,c) => {
+    if(b==c)
+      return
+    graph[b].push(c)
+    graph[c].push(b)
+    // if(S1.includes(b) && S1.includes(c)){
+    //   graph1[b].push(c)
+    // } else if (S2.includes(b) && S2.includes(c)){
+    //   graph2[b].push(c)
+    // }
+  })
+}
+
+buildDelaunayGraph()
 drawDelaunay()
 // console.info(graph1)
 // console.info(graph2)
@@ -123,9 +129,9 @@ function doAlgo(){
   var btn = document.getElementById('run');
   btn.disabled = true;
   const doSomething = async () =>{
-    await sleep(1000)
+    // await sleep(1000)
     const recurrantStep = async () => {
-      if(points.length < 3){
+      if(points.length < 4){
         return
       }
       setProgress("Pick 2 random points")
@@ -155,11 +161,15 @@ function doAlgo(){
         graph[point].forEach((el) => queue.push(el))
         let nearest = queue.pop()
         while(points.indexOf(nearest) < 0){
+          if(queue.length == 0){
+            console.error("empty queue")
+            break
+          }
           nearest = queue.pop()
         }
         let last = point
         // console.info("Drawing edge")
-        await sleep(2000);
+        // await sleep(2000);
         setProgress("Find Nearest Neighbors")
         // console.info(svg.select(getLineAttributeString(point,nearest)).attr('stroke', red))
         let edges = [drawSearchRadius(point,Math.sqrt(magnitudeSquared(point, nearest)))]
@@ -168,21 +178,33 @@ function doAlgo(){
         // console.info(graph[point])
         let length = 1
         while(!currentPosset.includes(nearest)){
-          await sleep(1000)
+          if(queue.length == 0){
+            console.error("empty queue")
+            break
+          }
+          // await sleep(1000)
           length += 1
           graph[nearest].forEach((el) => queue.push(el))
           visited.push(nearest)
           last = nearest
           nearest = queue.pop()
           while(points.indexOf(nearest) < 0){
+            if(queue.length == 0){
+              console.error("empty queue")
+              break
+            }
             nearest = queue.pop()
           }
-          while(visited.includes(nearest)){
-            nearest = queue.pop()
-          }
+          // while(visited.includes(nearest)){
+          //   if(queue.length == 0){
+          //     console.error("empty queue")
+          //     break
+          //   }
+          //   nearest = queue.pop()
+          // }
           // svg.select(getLineAttributeString(last,nearest)).attr('stroke', red)
           edges.push(drawSearchRadius(point, Math.sqrt(magnitudeSquared(point, nearest))))
-          // await sleep(1000)
+          await sleep(1000)
         }
         await sleep(1000)
         
@@ -212,7 +234,7 @@ function doAlgo(){
       .attr('stroke', '')
       .attr('stroke-width','')
       .attr('r',4)
-      
+      d3.select(getCircleAttributeString(first.origin)).attr('stroke',orange)
       
       await sleep(1000)
       setProgress("Remove the first point from Dt(S)")
@@ -220,6 +242,7 @@ function doAlgo(){
       let q = first.nearest
       points.splice(points.indexOf(p),1)
       delaunay = Delaunator.from(points)
+      buildDelaunayGraph()
       drawDelaunay()
       d3.selectAll(`circle`).raise()
       
@@ -233,7 +256,9 @@ function doAlgo(){
       // .attr('stroke',"")
       
       // console.log("Hi")
-      await recurrantStep()
+      await console.info(`Remaining points: ${points.length}`)
+      await sleep(100)
+      recurrantStep()
     }
     await recurrantStep()
     // for(let i = 0; i < points.length; i++){
