@@ -43,7 +43,11 @@ const blue = '#6F97A8'
 const purple = '#BC95E1'
 const red = '#82204A'
 var log = "> Initialize Delaunay Triangulation (DT)";
-document.getElementById("insert").innerHTML = log;
+
+
+function setProgress(progress){
+  document.getElementById("insert").innerHTML='> ' + progress
+}
 
 
 // console.log(triangles);
@@ -109,8 +113,7 @@ function doAlgo(){
   const doSomething = async () =>{
     await sleep(1000)
     const recurrantStep = async () => {
-      log = "> Pick 2 random points"
-      document.getElementById("insert").innerHTML = log
+      setProgress("Pick 2 random points")
       let p1 = points[Math.floor(Math.random() * points.length)]
       let p2 = points[Math.floor(Math.random() * points.length)]
       svg.select(getCircleAttributeString(p1))
@@ -139,10 +142,9 @@ function doAlgo(){
         let last = point
         console.info("Drawing edge")
         await sleep(2000);
-        log = "> Find Nearest Neighbors"
-        document.getElementById("insert").innerHTML = log
+        setProgress("Find Nearest Neighbors")
         // console.info(svg.select(getLineAttributeString(point,nearest)).attr('stroke', red))
-        let edges = [drawEdge(point,nearest).attr('stroke', red)]
+        let edges = [drawSearchRadius(point,Math.sqrt(magnitudeSquared(point, nearest)))]
         let visited = [point,nearest]
         console.info(queue)
         console.info(graph[point])
@@ -158,14 +160,16 @@ function doAlgo(){
             nearest = queue.pop()
           }
           // svg.select(getLineAttributeString(last,nearest)).attr('stroke', red)
-          edges.push(drawEdge(last,nearest).attr('stroke', red))
+          edges.push(drawSearchRadius(point, Math.sqrt(magnitudeSquared(point, nearest))))
           // await sleep(1000)
         }
-        await sleep(5000)
+        await sleep(3000)
         edges.forEach((edge) => edge.remove())
+        drawEdge(point,nearest).attr('stroke',red)
         return nearest
       } 
-      console.log(await Promise.all([findNeigbor(p1), findNeigbor(p2)]))
+      console.log(await Promise.race([findNeigbor(p1), findNeigbor(p2)]))
+      setProgress("Select the first located nearest neighbor")
       // await findNeigbor(p1)
       // await sleep(2000)
       // svg.select(getCircleAttributeString(p1))
@@ -227,6 +231,15 @@ function drawEdge(p1, p2) {
   .attr("y2", p2[1])
   .attr("stroke-width", 2)
   .attr("stroke", "lightgrey");
+}
+
+function drawSearchRadius(point, radius){
+  return svg.append('circle')
+  .attr('cx', point[0])
+  .attr('cy', point[1])
+  .attr('fill', 'transparent')
+  .attr('r', radius)
+  .attr('stroke', red)
 }
 
 
