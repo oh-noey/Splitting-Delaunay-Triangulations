@@ -37,12 +37,12 @@ var svg = d3.select("svg"),
     height = +svg.attr("height");
 // const points = [[0, 0], [0, 100], [100, 0], [100, 100], [200, 200], [20, 20]]
 const points = Array.from({length: 80}, ()=> [Math.floor(Math.random()*width), Math.floor(Math.random()*height)])
-const delaunay = Delaunator.from(points);
+var delaunay = Delaunator.from(points);
+var delaunayLines = []
 const triangles = delaunay.hull
 const blue = '#6F97A8'
 const purple = '#BC95E1'
 const red = '#82204A'
-var log = "> Initialize Delaunay Triangulation (DT)";
 
 
 function setProgress(progress){
@@ -65,25 +65,37 @@ const splitPos = Math.floor(Math.random()*points.length)
 const S1 = points.slice(0,splitPos)
 const S2 = points.slice(splitPos)
 var graph = new Object();
-var graph1 = new Object();
-var graph2 = new Object();
+// var graph1 = new Object();
+// var graph2 = new Object();
 for(let i = 0; i < points.length; i++){
   graph[points[i]] = []
-  graph1[points[i]] = []
-  graph2[points[i]] = []
+  // graph1[points[i]] = []
+  // graph2[points[i]] = []
 }
+
+function drawDelaunay(){
+  delaunayLines.forEach((line) => line.remove())
+  delaunayLines = []
+  forEachTriangleEdge(points, delaunay, (_,b,c) => {
+    if(b==c)
+      return
+    
+    delaunayLines.push(drawEdge(b,c,svg))
+  })
+}
+
 forEachTriangleEdge(points, delaunay, (_,b,c) => {
   if(b==c)
     return
-  drawEdge(b,c,svg)
   graph[b].push(c)
   graph[c].push(b)
-  if(S1.includes(b) && S1.includes(c)){
-    graph1[b].push(c)
-  } else if (S2.includes(b) && S2.includes(c)){
-    graph2[b].push(c)
-  }
+  // if(S1.includes(b) && S1.includes(c)){
+  //   graph1[b].push(c)
+  // } else if (S2.includes(b) && S2.includes(c)){
+  //   graph2[b].push(c)
+  // }
 })
+drawDelaunay()
 // console.info(graph1)
 // console.info(graph2)
 // console.info(graph)
@@ -113,6 +125,9 @@ function doAlgo(){
   const doSomething = async () =>{
     await sleep(1000)
     const recurrantStep = async () => {
+      if(points.length < 3){
+        return
+      }
       setProgress("Pick 2 random points")
       let p1 = points[Math.floor(Math.random() * points.length)]
       let p2 = points[Math.floor(Math.random() * points.length)]
@@ -126,36 +141,42 @@ function doAlgo(){
       .attr('stroke-width', 4)
       
       const findNeigbor= async(point) => {
-        var currentGraph;
+        // var currentGraph;
         var currentPosset
         if(S1.includes(point)){
-          currentGraph = graph1
+          // currentGraph = graph1
           currentPosset = S1
         } else {
           // It must be in S2
-          currentGraph = graph2
+          // currentGraph = graph2
           currentPosset = S2
         }
         var queue = new TinyQueue(data = [], compare=(x,y) => magnitudeSquared(point,x) - magnitudeSquared(point,y))
         graph[point].forEach((el) => queue.push(el))
         let nearest = queue.pop()
+        while(points.indexOf(nearest) < 0){
+          nearest = queue.pop()
+        }
         let last = point
-        console.info("Drawing edge")
+        // console.info("Drawing edge")
         await sleep(2000);
         setProgress("Find Nearest Neighbors")
         // console.info(svg.select(getLineAttributeString(point,nearest)).attr('stroke', red))
         let edges = [drawSearchRadius(point,Math.sqrt(magnitudeSquared(point, nearest)))]
         let visited = [point,nearest]
-        console.info(queue)
-        console.info(graph[point])
+        // console.info(queue)
+        // console.info(graph[point])
+        let length = 1
         while(!currentPosset.includes(nearest)){
           await sleep(1000)
-          console.info(`${nearest}`)
+          length += 1
           graph[nearest].forEach((el) => queue.push(el))
-          console.info(queue)
           visited.push(nearest)
           last = nearest
           nearest = queue.pop()
+          while(points.indexOf(nearest) < 0){
+            nearest = queue.pop()
+          }
           while(visited.includes(nearest)){
             nearest = queue.pop()
           }
@@ -163,13 +184,45 @@ function doAlgo(){
           edges.push(drawSearchRadius(point, Math.sqrt(magnitudeSquared(point, nearest))))
           // await sleep(1000)
         }
+        await sleep(1000)
+        
+        let edge = drawEdge(point,nearest).attr('stroke',red)
+        d3.select(getCircleAttributeString(point)).raise()
+        d3.select(getCircleAttributeString(nearest)).raise()
         await sleep(3000)
         edges.forEach((edge) => edge.remove())
-        drawEdge(point,nearest).attr('stroke',red)
-        return nearest
+        return {origin: point,nearest: nearest,depth: length, edge: edge}
       } 
-      console.log(await Promise.race([findNeigbor(p1), findNeigbor(p2)]))
+      searches = await Promise.all([findNeigbor(p1), findNeigbor(p2)])
+      await sleep(1000)
       setProgress("Select the first located nearest neighbor")
+      var first, second
+      if(searches[0].depth < searches[1].depth){
+        first = searches[0]
+        second = searches[1]
+        second.edge.remove()
+      } else {
+        first = searches[1]
+        second = searches[0]
+        second.edge.remove()
+      }
+      // console.info(getLineAttributeString(second.origin, second.nearest))
+      // d3.selectAll(getLineAttributeString(second.origin, second.nearest)).select(`[stroke='${red}']`).remove()
+      d3.select(getCircleAttributeString(second.origin))
+      .attr('stroke', '')
+      .attr('stroke-width','')
+      .attr('r',4)
+      
+      
+      await sleep(1000)
+      setProgress("Remove the first point from Dt(S)")
+      let p = first.origin
+      let q = first.nearest
+      points.splice(points.indexOf(p),1)
+      delaunay = Delaunator.from(points)
+      drawDelaunay()
+      d3.selectAll(`circle`).raise()
+      
       // await findNeigbor(p1)
       // await sleep(2000)
       // svg.select(getCircleAttributeString(p1))
@@ -180,8 +233,9 @@ function doAlgo(){
       // .attr('stroke',"")
       
       // console.log("Hi")
+      await recurrantStep()
     }
-    recurrantStep()
+    await recurrantStep()
     // for(let i = 0; i < points.length; i++){
     //   await sleep(500)
     //   svg.select(getCircleAttributeString(points[i]))
@@ -225,10 +279,10 @@ function drawEdge(p1, p2) {
     }
   }
   return svg.append("line")
-  .attr("x1", p1[0])
-  .attr("y1", p1[1])
-  .attr("x2", p2[0])
-  .attr("y2", p2[1])
+  .attr("x1", a[0])
+  .attr("y1", a[1])
+  .attr("x2", b[0])
+  .attr("y2", b[1])
   .attr("stroke-width", 2)
   .attr("stroke", "lightgrey");
 }
