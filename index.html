@@ -16,6 +16,7 @@
         <div class="slidecontainer">
           <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
         </div>
+        <p id="demo"></p>
         <div class="consolebox">
           <p id="insert"></p>
         </div>
@@ -44,6 +45,16 @@ const blue = '#6F97A8'
 const purple = '#BC95E1'
 const red = '#82204A'
 const orange = '#DDA448'
+
+var slider = document.getElementById("myRange");
+var setTime = slider.value
+var output = document.getElementById("demo");
+output.innerHTML = slider.value; // Display the default slider value
+
+slider.oninput = function() {
+  output.innerHTML = this.value;
+  setTime = this.value
+}
 
 
 function setProgress(progress){
