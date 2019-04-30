@@ -156,7 +156,7 @@ function doAlgo(){
       .attr('r', 10)
       .attr('stroke',red)
       .attr('stroke-width', 4)
-      
+      await sleep(slider.value * 10)
       const findNeigbor= async(point) => {
         // var currentGraph;
         var currentPosset
@@ -215,19 +215,18 @@ function doAlgo(){
           // }
           // svg.select(getLineAttributeString(last,nearest)).attr('stroke', red)
           edges.push(drawSearchRadius(point, Math.sqrt(magnitudeSquared(point, nearest))))
-          await sleep(1000)
         }
-        await sleep(1000)
+        await sleep(slider.value * 10)
         
         let edge = drawEdge(point,nearest).attr('stroke',red)
         d3.select(getCircleAttributeString(point)).raise()
         d3.select(getCircleAttributeString(nearest)).raise()
-        await sleep(3000)
+        await sleep(slider.value * 10)
         edges.forEach((edge) => edge.remove())
         return {origin: point,nearest: nearest,depth: length, edge: edge}
       } 
       searches = await Promise.all([findNeigbor(p1), findNeigbor(p2)])
-      await sleep(1000)
+      await sleep(slider.value * 10)
       setProgress("Select the first located nearest neighbor")
       var first, second
       if(searches[0].depth < searches[1].depth){
@@ -247,7 +246,7 @@ function doAlgo(){
       .attr('r',4)
       d3.select(getCircleAttributeString(first.origin)).attr('stroke',orange)
       
-      await sleep(1000)
+      await sleep(slider.value * 10)
       setProgress("Remove the first point from Dt(S)")
       let p = first.origin
       let q = first.nearest
@@ -268,7 +267,6 @@ function doAlgo(){
       
       // console.log("Hi")
       await console.info(`Remaining points: ${points.length}`)
-      await sleep(100)
       recurrantStep()
     }
     await recurrantStep()
@@ -518,7 +516,7 @@ function forEachTriangle(points, delaunay, callback) {
 }
 
 .consolebox {
-  width: 85%;
+  width: 20vw;
   height: 15%;
   padding: 10px;
   border: 2px solid grey;
