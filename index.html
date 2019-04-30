@@ -16,7 +16,6 @@
         <div class="slidecontainer">
           <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
         </div>
-        <p id="demo"></p>
         <div class="consolebox">
           <p id="insert"></p>
         </div>
@@ -51,10 +50,10 @@ var triangulation1, triangulation2, tpoint1 = [], tpoint2 = [], tlines1=[], tlin
 var slider = document.getElementById("myRange");
 var setTime = slider.value
 var output = document.getElementById("demo");
-output.innerHTML = slider.value; // Display the default slider value
+//output.innerHTML = slider.value; // Display the default slider value
 
 slider.oninput = function() {
-  output.innerHTML = this.value;
+  //output.innerHTML = this.value;
   setTime = this.value
 }
 
@@ -302,6 +301,7 @@ function doAlgo(){
           redrawDelaunay(Delaunator.from(tpoint2), tpoint2, tlines2)
         }
       }
+      setProgress("Recursively draw Delaunay Triangulation")
       d3.select(getCircleAttributeString(p))
       .attr('stroke','')
       .attr('stroke-width', '')
@@ -517,7 +517,7 @@ function forEachTriangle(points, delaunay, callback) {
 .slider {
   -webkit-appearance: none;  
   appearance: none;
-  width: 100%; 
+  width: 250px; 
   height: 15px; 
   background: #d3d3d3; 
   outline: none;
