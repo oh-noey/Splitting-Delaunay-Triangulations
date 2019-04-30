@@ -37,7 +37,7 @@ var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height");
 // const points = [[0, 0], [0, 100], [100, 0], [100, 100], [200, 200], [20, 20]]
-const points = Array.from({length: 60}, ()=> [Math.floor(Math.random()*width), Math.floor(Math.random()*height)])
+const points = Array.from({length: 200}, ()=> [10+Math.floor(Math.random()*(width-20)), Math.floor(10 + Math.random()*(height-20))])
 var delaunay = Delaunator.from(points);
 var delaunayLines = []
 const triangles = delaunay.hull
@@ -45,6 +45,8 @@ const blue = '#6F97A8'
 const purple = '#BC95E1'
 const red = '#82204A'
 const orange = '#DDA448'
+
+var triangulation1, triangulation2, tpoint1 = [], tpoint2 = [], tlines1=[], tlines2=[]
 
 var slider = document.getElementById("myRange");
 var setTime = slider.value
@@ -89,6 +91,25 @@ function drawDelaunay(){
       return
     
     delaunayLines.push(drawEdge(b,c,svg))
+  })
+}
+
+function redrawDelaunay(delaunay, points, lines){
+  console.info(delaunay)
+  console.info(points)
+  console.info(lines)
+  lines.forEach((line) => line.remove())
+  lines.length = 0
+  forEachTriangleEdge(points, delaunay, (_, b, c)=> {
+    if(b==c)
+      return
+    console.info(`(${b}) (${c})`)
+    lines.push(drawEdge(b,c,svg))
+    if(S1.includes(b)){
+      lines[lines.length - 1].attr('stroke', blue)
+    } else {
+      lines[lines.length - 1].attr('stroke', purple)
+    }
   })
 }
 
@@ -243,7 +264,7 @@ function doAlgo(){
       d3.select(getCircleAttributeString(second.origin))
       .attr('stroke', '')
       .attr('stroke-width','')
-      .attr('r',4)
+      .attr('r',5)
       d3.select(getCircleAttributeString(first.origin)).attr('stroke',orange)
       
       await sleep(slider.value * 10)
@@ -266,8 +287,27 @@ function doAlgo(){
       // .attr('stroke',"")
       
       // console.log("Hi")
-      await console.info(`Remaining points: ${points.length}`)
-      recurrantStep()
+      console.info(`Remaining points: ${points.length}`)
+      await recurrantStep()
+      // console.info("loading")
+      await sleep(slider.value * 10)
+      if(S1.includes(p)){
+        tpoint1.push(p)
+        if(tpoint1.length > 3){
+          redrawDelaunay(Delaunator.from(tpoint1), tpoint1, tlines1)
+        }
+      } else {
+        tpoint2.push(p)
+        if(tpoint2.length > 3){
+          redrawDelaunay(Delaunator.from(tpoint2), tpoint2, tlines2)
+        }
+      }
+      d3.select(getCircleAttributeString(p))
+      .attr('stroke','')
+      .attr('stroke-width', '')
+      .attr('r', 5)
+      d3.selectAll(`circle`).raise()
+      
     }
     await recurrantStep()
     // for(let i = 0; i < points.length; i++){
