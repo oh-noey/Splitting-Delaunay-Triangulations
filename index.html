@@ -27,12 +27,13 @@
         <div id="numNodes">
           <div class="labels">
             <p class="item" style="text-align: left">10 Points</p>
-              <btn class="button3" id="populate">Submit</btn>
+              <btn class="button3" id="populate">Update</btn>
             <p class="item" style="text-align: right">300 Points</p>
           </div>
           <div class="slidecontainer">
             <input type="range" min="10" max="300" value="200" class="slider" id="points">
           </div>
+          <p id="demo" style="font-weight: bold">200</p>
         </div>
         <div class="consolebox">
           <p id="insert"></p>
@@ -67,14 +68,18 @@ var svg = d3.select("svg")
 //Slider for number of Nodes
 var slider2 = document.getElementById("points");
 var setPoints = slider2.value
-//output.innerHTML = slider.value; // Display the default slider value
+var output = document.getElementById("demo");
 slider2.oninput = function() {
-  //output.innerHTML = this.value;
+  output.innerHTML = this.value;
   setPoints = this.value
 }
 
 
 var width = 800, height = 450;
+const blue = '#6F97A8'
+const purple = '#BC95E1'
+const red = '#82204A'
+const orange = '#DDA448'
 // const points = [[0, 0], [0, 100], [100, 0], [100, 100], [200, 200], [20, 20]]
 
 //function to display points
@@ -83,18 +88,100 @@ document.getElementById("populate").onclick = function() {populate()};
 function populate() {
   console.log("working")
 
+  svg.selectAll("*").remove();
+
+  points = Array.from({length: setPoints}, ()=> [10+Math.floor(Math.random()*(width-20)), Math.floor(10 + Math.random()*(height-20))])
+  delaunay = Delaunator.from(points);
+  delaunayLines = []
+  triangles = delaunay.hull
+
+
+  triangulation1, triangulation2, tpoint1 = [], tpoint2 = [], tlines1=[], tlines2=[]
+  splitPos = Math.floor(Math.random()*points.length)
+  // const S1 = points.slice(0,splitPos)
+  // const S2 = points.slice(splitPos)
+  S1 = []
+  S2 = []
+  for(let i = 0; i<points.length;i++){
+    // if(Math.pow(points[i][0] - 420,2)/120 > points[i][1])
+    //   S1.push(points[i])
+    // else
+    //   S2.push(points[i])
+    if(i<points.length / 2)
+      S1.push(points[i])
+    else
+      S2.push(points[i])
+  }
+  graph = new Object();
+
+  buildDelaunayGraph()
+  drawDelaunay()
+  // console.info(graph1)
+  // console.info(graph2)
+  // console.info(graph)
+  for(let i = 0; i < points.length; i++){
+    let circ = svg.append("circle")
+    .attr('cx', points[i][0])
+    .attr('cy', points[i][1])
+    .attr('r', 5)
+    if(S1.includes(points[i])){
+      circ.attr('fill',blue)
+    } else{
+      circ.attr('fill',purple)
+    }
+  }
+
 }
 
-const points = Array.from({length: 200}, ()=> [10+Math.floor(Math.random()*(width-20)), Math.floor(10 + Math.random()*(height-20))])
+var points = Array.from({length: 200}, ()=> [10+Math.floor(Math.random()*(width-20)), Math.floor(10 + Math.random()*(height-20))])
 var delaunay = Delaunator.from(points);
 var delaunayLines = []
-const triangles = delaunay.hull
-const blue = '#6F97A8'
-const purple = '#BC95E1'
-const red = '#82204A'
-const orange = '#DDA448'
+var triangles = delaunay.hull
 
 var triangulation1, triangulation2, tpoint1 = [], tpoint2 = [], tlines1=[], tlines2=[]
+
+
+// console.info(graph1)
+// console.info(graph2)
+// console.info(graph)
+
+var splitPos = Math.floor(Math.random()*points.length)
+// const S1 = points.slice(0,splitPos)
+// const S2 = points.slice(splitPos)
+var S1 = []
+var S2 = []
+for(let i = 0; i<points.length;i++){
+  // if(Math.pow(points[i][0] - 420,2)/120 > points[i][1])
+  //   S1.push(points[i])
+  // else
+  //   S2.push(points[i])
+  if(i<points.length / 2)
+    S1.push(points[i])
+  else
+    S2.push(points[i])
+}
+
+var graph = new Object();
+
+buildDelaunayGraph()
+drawDelaunay()
+
+for(let i = 0; i < points.length; i++){
+  let circ = svg.append("circle")
+  .attr('cx', points[i][0])
+  .attr('cy', points[i][1])
+  .attr('r', 5)
+  if(S1.includes(points[i])){
+    circ.attr('fill',blue)
+  } else{
+    circ.attr('fill',purple)
+  }
+}
+
+
+
+
+
 
 
 //Slider for time
@@ -146,22 +233,7 @@ NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
 //   .attr("stroke", "lightgrey");
 //   console.log(points[triangles[i]])
 // }
-const splitPos = Math.floor(Math.random()*points.length)
-// const S1 = points.slice(0,splitPos)
-// const S2 = points.slice(splitPos)
-const S1 = []
-const S2 = []
-for(let i = 0; i<points.length;i++){
-  // if(Math.pow(points[i][0] - 420,2)/120 > points[i][1])
-  //   S1.push(points[i])
-  // else
-  //   S2.push(points[i])
-  if(i<points.length / 2)
-    S1.push(points[i])
-  else
-    S2.push(points[i])
-}
-var graph = new Object();
+
 // var graph1 = new Object();
 // var graph2 = new Object();
 
@@ -215,22 +287,7 @@ function buildDelaunayGraph(){
   })
 }
 
-buildDelaunayGraph()
-drawDelaunay()
-// console.info(graph1)
-// console.info(graph2)
-// console.info(graph)
-for(let i = 0; i < points.length; i++){
-  let circ = svg.append("circle")
-  .attr('cx', points[i][0])
-  .attr('cy', points[i][1])
-  .attr('r', 5)
-  if(S1.includes(points[i])){
-    circ.attr('fill',blue)
-  } else{
-    circ.attr('fill',purple)
-  }
-}
+
 
 const sleep = (milliseconds) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
@@ -610,7 +667,7 @@ body {
 }
 
 .button3 {
-  background-color: #008CBA;
+  background-color: #9880F7;
   border: none;
   color: white;
   height: 20px;
