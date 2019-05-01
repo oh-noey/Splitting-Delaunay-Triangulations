@@ -15,8 +15,24 @@
           <button class="button1" id="run">Run</button>
           <button class="button2" value="Reload Page" onClick="document.location.reload(true)">Reset</button>
         </div>
-        <div class="slidecontainer">
-          <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+        <div>
+          <div class="labels">
+            <p class="item" style="text-align: left">Max Speed</p>
+            <p class="item" style="text-align: right">Min Speed</p>
+          </div>
+          <div class="slidecontainer">
+            <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+          </div>
+        </div>
+        <div id="numNodes">
+          <div class="labels">
+            <p class="item" style="text-align: left">10 Points</p>
+              <btn class="button3" id="populate">Submit</btn>
+            <p class="item" style="text-align: right">300 Points</p>
+          </div>
+          <div class="slidecontainer">
+            <input type="range" min="10" max="300" value="200" class="slider" id="points">
+          </div>
         </div>
         <div class="consolebox">
           <p id="insert"></p>
@@ -47,8 +63,28 @@ var svg = d3.select("svg")
 // svg.attr('height',svg.node().parentNode.offsetHeight)
 // var width = +svg.attr("width"),
 //     height = +svg.attr("height");
+
+//Slider for number of Nodes
+var slider2 = document.getElementById("points");
+var setPoints = slider2.value
+//output.innerHTML = slider.value; // Display the default slider value
+slider2.oninput = function() {
+  //output.innerHTML = this.value;
+  setPoints = this.value
+}
+
+
 var width = 800, height = 450;
 // const points = [[0, 0], [0, 100], [100, 0], [100, 100], [200, 200], [20, 20]]
+
+//function to display points
+document.getElementById("populate").onclick = function() {populate()};
+
+function populate() {
+  console.log("working")
+
+}
+
 const points = Array.from({length: 200}, ()=> [10+Math.floor(Math.random()*(width-20)), Math.floor(10 + Math.random()*(height-20))])
 var delaunay = Delaunator.from(points);
 var delaunayLines = []
@@ -60,11 +96,11 @@ const orange = '#DDA448'
 
 var triangulation1, triangulation2, tpoint1 = [], tpoint2 = [], tlines1=[], tlines2=[]
 
+
+//Slider for time
 var slider = document.getElementById("myRange");
 var setTime = slider.value
-var output = document.getElementById("demo");
 //output.innerHTML = slider.value; // Display the default slider value
-
 slider.oninput = function() {
   //output.innerHTML = this.value;
   setTime = this.value
@@ -85,6 +121,19 @@ function setProgress(progress){
   document.getElementById("insert").innerHTML = text
 }
 
+
+
+//for removing number of points slider
+Element.prototype.remove = function() {
+    this.parentElement.removeChild(this);
+}
+NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+    for(var i = this.length - 1; i >= 0; i--) {
+        if(this[i] && this[i].parentElement) {
+            this[i].parentElement.removeChild(this[i]);
+        }
+    }
+}
 
 // console.log(triangles);
 // for (let i = 1; i < triangles.length; i ++) {
@@ -107,7 +156,7 @@ for(let i = 0; i<points.length;i++){
   //   S1.push(points[i])
   // else
   //   S2.push(points[i])
-  if(i<10)
+  if(i<points.length / 2)
     S1.push(points[i])
   else
     S2.push(points[i])
@@ -194,6 +243,7 @@ document.getElementById("run").onclick = function() {doAlgo()};
 function doAlgo(){
   var btn = document.getElementById('run');
   btn.disabled = true;
+  document.getElementById("numNodes").remove();
   const doSomething = async () =>{
     // await sleep(1000)
     const recurrantStep = async () => {
@@ -559,6 +609,18 @@ body {
   font-size: 16px;
 }
 
+.button3 {
+  background-color: #008CBA;
+  border: none;
+  color: white;
+  height: 20px;
+  padding: 10px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
 .slidecontainer {
   width: 100%;
 }
@@ -617,6 +679,14 @@ body {
   max-height: 300px;
 }
 
+.labels {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.item {
+  flex: 1 1 auto;
+}
 
 </style>
 
