@@ -34,6 +34,13 @@
             <input type="range" min="10" max="300" value="200" class="slider" id="points">
           </div>
           <p id="demo" style="font-weight: bold">200</p>
+          <div>
+            <select id="distribution">
+              <option value="0">Random Distribution</option>
+              <option value="1">Parabolic Distribution</option>
+              <option value="2">Small Subset</option>
+            </select>
+          </div>
         </div>
         <div class="consolebox">
           <p id="insert"></p>
@@ -85,9 +92,12 @@ const orange = '#DDA448'
 //function to display points
 document.getElementById("populate").onclick = function() {populate()};
 
-function populate() {
-  console.log("working")
+//init distribution
+var distribution = 0
 
+
+
+function populate() {
   svg.selectAll("*").remove();
 
   points = Array.from({length: setPoints}, ()=> [10+Math.floor(Math.random()*(width-20)), Math.floor(10 + Math.random()*(height-20))])
@@ -102,16 +112,46 @@ function populate() {
   // const S2 = points.slice(splitPos)
   S1 = []
   S2 = []
-  for(let i = 0; i<points.length;i++){
-    // if(Math.pow(points[i][0] - 420,2)/120 > points[i][1])
-    //   S1.push(points[i])
-    // else
-    //   S2.push(points[i])
-    if(i<points.length / 2)
-      S1.push(points[i])
-    else
-      S2.push(points[i])
+  
+  //get distribution value from user
+  var e = document.getElementById("distribution")
+  distribution = e.options[e.selectedIndex].value;
+
+  if (distribution == 1) {
+    //Code for Parabolic distribution
+    for(let i = 0; i<points.length;i++){
+      if(Math.pow(points[i][0] - (width/2),2)/(width/8) > points[i][1])
+         S1.push(points[i])
+       else
+         S2.push(points[i])
+      //if(i<points.length / 2)
+        //S1.push(points[i])
+      //else
+        //S2.push(points[i])
+    }
   }
+  if (distribution == 0) {
+    //code for random distribution
+    for(let i = 0; i<points.length;i++){
+      // if(Math.pow(points[i][0] - 420,2)/120 > points[i][1])
+      //   S1.push(points[i])
+      // else
+      //   S2.push(points[i])
+      if(i<points.length / 2)
+        S1.push(points[i])
+      else
+        S2.push(points[i])
+    }
+  }
+  if (distribution == 2) {
+    for(let i = 0; i<points.length;i++){
+      if(i< 10)
+        S1.push(points[i])
+      else
+        S2.push(points[i])
+    }
+  }
+
   graph = new Object();
 
   buildDelaunayGraph()
@@ -250,15 +290,15 @@ function drawDelaunay(){
 }
 
 function redrawDelaunay(delaunay, points, lines){
-  console.info(delaunay)
-  console.info(points)
-  console.info(lines)
+  // console.info(delaunay)
+  // console.info(points)
+  // console.info(lines)
   lines.forEach((line) => line.remove())
   lines.length = 0
   forEachTriangleEdge(points, delaunay, (_, b, c)=> {
     if(b==c)
       return
-    console.info(`(${b}) (${c})`)
+    // console.info(`(${b}) (${c})`)
     lines.push(drawEdge(b,c,svg))
     if(S1.includes(b)){
       lines[lines.length - 1].attr('stroke', blue)
@@ -305,6 +345,14 @@ function doAlgo(){
     // await sleep(1000)
     const recurrantStep = async () => {
       if(points.length < 4){
+        delaunayLines.forEach((line) => line.remove())
+        for(let i = 0; i<points.length;i++){
+          if(S1.includes(points[i])){
+            tpoint1.push(points[i])
+          } else {
+            tpoint2.push(points[i])
+          }
+        }
         return
       }
       setProgress("Pick 2 random points")
@@ -437,6 +485,19 @@ function doAlgo(){
       await recurrantStep()
       // console.info("loading")
       await sleep(slider.value * 10)
+      setProgress("search for p in triangles including q")
+      // var searchEdges
+      // if(S1.includes(q)){
+      //   if(tpoint1.length > 4)
+      //   searchEdges = edgesAroundPoint(triangulation1, tpoint1.indexOf(q))
+      // } else {
+      //   searchEdges = []
+      // }
+      // // const searchEdges = edgesAroundPoint(q)
+      // for(let i = 0; i<searchEdges.length; i++){
+      //   console.info(searchEdges[i])
+      // }
+      setProgress("flip to delaunay")
       if(S1.includes(p)){
         tpoint1.push(p)
         if(tpoint1.length > 3){
@@ -448,7 +509,7 @@ function doAlgo(){
           redrawDelaunay(Delaunator.from(tpoint2), tpoint2, tlines2)
         }
       }
-      setProgress("Recursively draw Delaunay Triangulation")
+      
       d3.select(getCircleAttributeString(p))
       .attr('stroke','')
       .attr('stroke-width', '')
@@ -468,8 +529,23 @@ function doAlgo(){
 }
 
 function magnitudeSquared(p1, p2){
+  if (p1 == undefined || p2 == undefined) {
+    return 0
+  }
   return (p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[1]-p2[1])*(p1[1]-p2[1])
 }
+
+function edgesAroundPoint(delaunay, start) {
+    const result = [];
+    let incoming = start;
+    do {
+        result.push(incoming);
+        const outgoing = nextHalfedge(incoming);
+        incoming = delaunay.halfedges[outgoing];
+    } while (incoming !== -1 && incoming !== start);
+    return result;
+}
+
 function getCircleAttributeString(point){
   return `circle[cx='${point[0]}'][cy='${point[1]}']`
 }
@@ -667,6 +743,7 @@ body {
 }
 
 .button3 {
+  font-family: Helvetica;
   background-color: #9880F7;
   border: none;
   color: white;
@@ -743,6 +820,7 @@ body {
 
 .item {
   flex: 1 1 auto;
+  font-family: Helvetica;
 }
 
 </style>
